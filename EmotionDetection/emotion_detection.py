@@ -6,7 +6,12 @@ _KEYS = ("anger", "disgust", "fear", "joy", "sadness")
 
 
 def emotion_detector(text_to_analyze: str) -> dict:
-    resp = requests.post(        _URL, json={"raw_document": {"text": text_to_analyze}}, headers=_HEADERS)
+    resp = requests.post(_URL, json={"raw_document": {"text": text_to_analyze}}, headers=_HEADERS)
+
+    # Check for status code 400
+    if resp.status_code == 400:
+        return {**{k: None for k in _KEYS}, "dominant_emotion": None}
+
     emotions = (resp.json().get("emotionPredictions") or [{}])[0].get("emotion", {})
     scores = {k: float(emotions.get(k, 0.0)) for k in _KEYS}
     return {**scores, "dominant_emotion": max(scores, key=scores.get)}
